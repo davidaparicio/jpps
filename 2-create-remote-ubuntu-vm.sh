@@ -40,7 +40,7 @@ pvesh create /nodes/$NODE/qemu --vmid $VMID \
   --ostype l26 \
   --sshkeys "$(jq -Rr @uri < $SSHKEY)" \
   --tags "$TAGS" \
-  #
+  "$@"
 
 pvesh set /nodes/$NODE/qemu/$VMID/resize --disk scsi0 --size $DISKSIZE
 pvesh create /nodes/$NODE/qemu/$VMID/status/start

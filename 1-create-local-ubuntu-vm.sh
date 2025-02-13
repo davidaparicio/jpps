@@ -31,7 +31,7 @@ qm create $VMID \
   --ostype l26 \
   --sshkey "$SSHKEY" \
   --tags "$TAGS" \
-  #
+  "$@"
 
 qm disk resize $VMID scsi0 $DISKSIZE
 qm start $VMID

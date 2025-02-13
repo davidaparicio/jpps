@@ -1,18 +1,12 @@
-data "proxmox_virtual_environment_nodes" "_" {}
-
-locals {
-  pve_nodes = data.proxmox_virtual_environment_nodes._.names
-}
-
 resource "proxmox_virtual_environment_vm" "_" {
-  node_name       = local.pve_nodes[each.value.node_index % length(local.pve_nodes)]
-  for_each        = local.nodes
-  name            = each.value.node_name
+  node_name       = each.value.hv_name
+  for_each        = local.vms
+  name            = each.value.vm_name
   tags            = ["container.training", var.tag]
   stop_on_destroy = true
   disk {
-    datastore_id = "ceph"
-    file_id      = "cephfs:iso/noble-server-cloudimg-amd64.img"
+    datastore_id = "local"
+    file_id      = proxmox_virtual_environment_download_file._[each.value.hv_name].id
     interface    = "scsi0"
     size         = 30
   }
@@ -37,4 +31,12 @@ resource "proxmox_virtual_environment_vm" "_" {
   operating_system {
     type = "l26"
   }
+}
+
+resource "proxmox_virtual_environment_download_file" "_" {
+  for_each     = toset(local.hvs)
+  content_type = "iso" # mandatory; "iso" for disk images or "vztmpl" for LXC images
+  datastore_id = "local"
+  node_name    = each.value
+  url          = "https://cloud-images.ubuntu.com/noble/current/noble-server-cloudimg-amd64.img"
 }

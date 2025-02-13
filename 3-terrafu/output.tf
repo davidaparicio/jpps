@@ -1,6 +1,6 @@
 locals {
   mac_addresses_bytes = {
-    for key, value in local.nodes :
+    for key, value in local.vms :
     key => split(":", lower(proxmox_virtual_environment_vm._[key].network_device[0].mac_address))
   }
   # Note: that part assumes that the MAC addresses are in the Proxmox range (BC:24:11).

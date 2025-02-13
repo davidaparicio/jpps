@@ -15,9 +15,9 @@ provider "proxmox" {
   #username = var.proxmox_username
   #password = var.proxmox_password
 
-  ssh {
-    agent       = false
-    private_key = file("~/.ssh/id_rsa")
-    username    = "root"
-  }
+  #ssh {
+  #  agent       = false
+  #  private_key = file("~/.ssh/id_rsa")
+  #  username    = "root"
+  #}
 }
