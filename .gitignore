@@ -1,0 +1,4 @@
+*.img
+id_rsa*
+terraform.tfstate*
+.terraform*

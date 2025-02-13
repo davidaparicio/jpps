@@ -1,0 +1,2 @@
+#!/bin/sh
+pssh -h hosts -l ubuntu -O IdentityFile=id_rsa -O StrictHostKeyChecking=no "$@"
