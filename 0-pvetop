@@ -1,0 +1,49 @@
+#!/bin/sh
+once() {
+  {
+    echo NODE STATUS CPU RAM VMS
+    pvesh get /cluster/resources --output-format json | 
+      jq -r '
+        (. | map(select (.type=="qemu")) | group_by(.node) | map({key: .[0].node, value: (.|length)}) | from_entries) as $vms
+        |
+        .[] | select (.type=="node")
+        | [
+            .node,
+            .status,
+            "\(100*.cpu|round)%",
+            "\(.mem/1000000000|round)/\(.maxmem/1000000000|round)GB",
+            $vms[.node]
+          ]
+        | @tsv' | sort
+  } | column -t
+}
+
+datapoint() {
+  pvesh get /cluster/resources --output-format json |
+    jq -r '. | map(select (.type=="node")) | sort_by(.node) | map([.cpu*100, .mem/.maxmem*100]) | flatten | @csv'
+}
+
+datastream() {
+  while datapoint; do sleep 1; done
+}
+
+graph() {
+  if ! [ "$COLUMNS" ]; then
+    echo "Please export the COLUMNS env var."
+    exit 1
+  fi
+  if ! [ "$LINES" ]; then
+    echo "Please export the LINES env var."
+    exit 1
+  fi
+  SN="-sn $(pvesh get /cluster/resources --output-format json | jq -r '. | map(select (.type=="node")) | length | .*2')"
+  SL="-sl $(pvesh get /cluster/resources --output-format json | jq -r '. | map(select (.type=="node")) | sort_by(.node) | map(["CPU@\(.node)", "RAM@\(.node)"]) | flatten | @csv')"
+  SC="-sc red,blue,orange,green,yellow,purple"
+  datastream | asciigraph -r -ub 100 $SN $SC $SL -w $((COLUMNS-10)) -h $((LINES-4))
+}
+
+case "$1" in
+once) once;;
+graph) graph;;
+"") watch --no-title "$0" once;;
+esac
