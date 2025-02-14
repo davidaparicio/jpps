@@ -29,7 +29,7 @@ RANDOM_NODE=$(
   shuf -n 1
   )
 # Uncomment the following line to put the new VM on a random node
-#NODE=$RANDOM_NODE
+NODE=$RANDOM_NODE
 
 pvesh create /nodes/$NODE/qemu --vmid $VMID \
   --scsihw virtio-scsi-single --scsi0 $STORAGE:0,import-from=$IMAGE_PATH \

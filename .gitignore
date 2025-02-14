@@ -1,5 +1,9 @@
 *.img
+*.img.orig
 id_rsa*
 terraform.tfstate*
 .terraform*
 hosts
+
+/conf
+/log

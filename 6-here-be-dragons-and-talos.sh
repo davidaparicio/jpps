@@ -221,6 +221,7 @@ EOF
 
   _install_ccm
   _install_csi
+  _install_sc
 
   echo "Installing CNI and MetalLB."
   _install_cilium
@@ -292,6 +293,41 @@ YAML
     kubectl apply -f-
 }
 
+_install_sc() {
+  kubectl apply -f- <<YAML
+---
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: pve-ceph
+  annotations:
+    storageclass.kubernetes.io/is-default-class: "true" 
+parameters:
+  csi.storage.k8s.io/fstype: xfs
+  storage: ceph
+  #cache: directsync|none|writeback|writethrough
+  #ssd: "true|false"
+provisioner: csi.proxmox.sinextra.dev
+allowVolumeExpansion: true
+reclaimPolicy: Delete
+volumeBindingMode: Immediate
+---
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: pve-local
+parameters:
+  csi.storage.k8s.io/fstype: xfs
+  storage: local
+  #cache: directsync|none|writeback|writethrough
+  #ssd: "true|false"
+provisioner: csi.proxmox.sinextra.dev
+allowVolumeExpansion: true
+reclaimPolicy: Delete
+volumeBindingMode: WaitForFirstConsumer
+YAML
+}
+
 _install_cilium() {
   helm upgrade -i  \
      cilium \
@@ -359,12 +395,12 @@ _create_many_clusters() {
     _create_cluster
   done
   wait
+  echo "Done."
 }
 
 cat <<EOF
 Reminder: this script should be sourced, not executed as-is.
-Example:
-. $0
+After sourcing the script, you can do e.g.:
 _create_many_clusters 5
 EOF
 
